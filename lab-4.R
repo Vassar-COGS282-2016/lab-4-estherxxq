@@ -294,51 +294,39 @@ likelihood.data <- likelihood.calculator(x.observed, y.observed)
 # and returns the total **negative log likelihood**. remember, we want the negative log likelihood because
 # optim() will find the set of parameters that minimizes a function.
 
-linear.model.error <- function(parameters){
-  b <- parameters[1]
-  m <- parameters[2]
-  
-  predicted.y <- b + m*x
-  
-  sq.error <- (y - predicted.y)^2
-  rmse <- sqrt(mean(sq.error))
-  
-  return(rmse)
-}
-
-fit <- optim(c(1,1), linear.model.error, method="Nelder-Mead")
-
 likelihood.fitness <- function(parameters){
   intercept <- parameters[1]
   slope <- parameters[2]
   sd.norm <- parameters[3]
-  
-  x.observed <- c(0:100)
-  y.predicted <- intercept + slope*x.observed
-  y.observed <- rnorm(101, mean = y.predicted, sd = sd.norm)
-  
-  for(i in 1:101){
+
   if(sd.norm > 0){
-  log.likelihood[i] <- dnorm(y.observed[i], y.predicted[i], sd.norm, log=T)
+  log.likelihood <- dnorm(y.observed, intercept + slope*x.observed, sd.norm, log=T)
   } else {
-    log.likelihood[i]=NA
-  }
+    log.likelihood=NA
   }
   
   log.likelihood.data <- sum(log.likelihood)
-  return(-1*log.likelihood.data)
+  return(-log.likelihood.data)
 }
-
-fit <- optim(c(0.1,0.1,0.1), likelihood.fitness, method="Nelder-Mead")
-print(fit)
-# answer needed here.
-#questions here!!! Why does it now work
 
 # use optim() and Nelder-Mead to search for the best fitting parameters. remember to ensure that sd > 0
 # and return NA if it is not.
 
-# answer needed here.
+fit <- optim(c(5,5,5), likelihood.fitness, method="Nelder-Mead")
+print(fit)
+# I tried plugging in different starting parameters
+# c(0,0,1): 4.8993634  0.7785404 10.1522337
+# close enough!
+# c(1,1,1): 4.9284113  0.7782689 10.2030450
+# c(2,2,1): 4.979472  0.777159 10.153527
+# c(5,5,1): -2.5540337  0.8856546  9.4706024
+# oh wow this one is way off
+# c(5,5,5): 4.1388059  0.7902953 10.0877065
+# This one is really close!
+# c(10,10,10): 4.9255621  0.7782211 10.1388786
+# how does the starting point affect the result???
 
 # finally, plot the best fitting line on your points by using the abline() function, and the parameters that optim() found.
 
-# answer needed here.
+plot(x.observed, y.observed)
+abline(a=fit$par[1], b=fit$par[2], col='red')
